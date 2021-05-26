@@ -10,6 +10,17 @@ import (
 
 // New creates a new zap Logger.
 func New(debug bool) *zap.Logger {
+	return newLogger(debug, nil)
+}
+
+// NewUnsampled creates a new zap logger with sampling disabled.
+func NewUnsampled(debug bool) *zap.Logger {
+	return newLogger(debug, func(c *zap.Config) {
+		c.Sampling = nil
+	})
+}
+
+func newLogger(debug bool, opts func(*zap.Config)) *zap.Logger {
 	var logConfig zap.Config
 
 	if debug {
@@ -17,6 +28,10 @@ func New(debug bool) *zap.Logger {
 		logConfig.EncoderConfig.EncodeLevel = zapcore.CapitalColorLevelEncoder
 	} else {
 		logConfig = zap.NewProductionConfig()
+	}
+
+	if opts != nil {
+		opts(&logConfig)
 	}
 
 	logger, err := logConfig.Build()
